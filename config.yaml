@@ -36,6 +36,7 @@ editing:
   beat_synced_cuts: false   # opt-in: split segments at beats that coincide with silence gaps
   sharpen: true
   contrast: 1.05
+  ken_burns_video: true   # subtle slow zoom on entire frame
   emphasis_keywords: ["bro", "what", "no", "crazy", "insane", "💀", "😭", "w", "🔥", "gg", "clutch"]
   ken_burns:
     enabled: true

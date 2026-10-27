@@ -228,12 +228,25 @@ def render_visual(src, dst, cfg, segments=None, crop_mode="face", zooms=None, ho
             zy = (crop_h - zh) // 2
             region = region[zy:zy + zh, zx:zx + zw]
             region = cv2.resize(region, (crop_w, crop_h))
-        region = cv2.resize(region, (target_w, target_h))
+        # Ken Burns: subtle slow zoom on the entire frame (1.0 -> 1.08)
+        kb_enabled = cfg.get("editing", {}).get("ken_burns_video", False)
+        if kb_enabled:
+            kb_zoom = 1.0 + 0.08 * (frame_idx / max(1, total_frames))
+            if kb_zoom > 1.01:
+                zh = int(crop_h / kb_zoom)
+                zw = int(crop_w / kb_zoom)
+                zx = (crop_w - zw) // 2
+                zy = (crop_h - zh) // 2
+                region = region[zy:zy + zh, zx:zx + zw]
+                region = cv2.resize(region, (crop_w, crop_h))
         if sharpen:
             kernel = np.array([[0, -0.2, 0], [-0.2, 1.8, -0.2], [0, -0.2, 0]], dtype=np.float32)
             region = cv2.filter2D(region, -1, kernel)
         if contrast != 1.0:
             region = cv2.convertScaleAbs(region, alpha=contrast, beta=0)
+        # ensure final dimensions
+        if region.shape[1] != target_w or region.shape[0] != target_h:
+            region = cv2.resize(region, (target_w, target_h))
         if captions_on:
             seg = _active_seg(segments, t)
             if seg is not None:
