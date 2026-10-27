@@ -1,0 +1,19 @@
+name: comedy
+display_name: "Comedy & Entertainment"
+editing:
+  zoom_factor: 1.25
+  contrast: 1.08
+  sharpen: true
+  speed_ramp: fast
+  caption_size: 80
+  caption_emphasis: true
+  emphasis_color: [0, 220, 255]
+  sfx_density: high
+  cut_density: high
+music:
+  mood: hype
+  energy: high
+captions:
+  highlight_color: "#00DCFF"
+  font_weight: bold
+  position: center

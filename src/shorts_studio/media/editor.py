@@ -166,6 +166,8 @@ def render_visual(src, dst, cfg, segments=None, crop_mode="face", zooms=None, ho
     sharpen = cfg["editing"].get("sharpen", False)
     contrast = cfg["editing"].get("contrast", 1.0)
     captions_on = cfg["video"].get("captions", True)
+    speed_ramp_mode = cfg["editing"].get("speed_ramp", "none")
+    do_speed_ramp = speed_ramp_mode in ("fast", "slowmo", "slowmo_payoff", "none") and speed_ramp_mode != "none"
     detect_interval = int(cfg["video"].get("face_detect_interval", 15))
     if detect_interval < 1:
         detect_interval = 1
@@ -174,6 +176,7 @@ def render_visual(src, dst, cfg, segments=None, crop_mode="face", zooms=None, ho
     last_log = 0
     zooms = zooms or []
     print(f"[render_visual] {src}: {sw}x{sh} @ {fps:.2f}fps, {total_frames} frames, crop_mode={crop_mode}, detect_interval={detect_interval}, zooms={len(zooms)}", flush=True)
+    frame_accumulator = 0.0
     while True:
         ok, frame = cap.read()
         if not ok:
@@ -258,6 +261,8 @@ def render_visual(src, dst, cfg, segments=None, crop_mode="face", zooms=None, ho
                     cv2.putText(region, hook_title, (x+dx, y+dy), font, scale, (0,0,0), thick+3, cv2.LINE_AA)
             cv2.putText(region, hook_title, (x, y), font, scale, (0,220,255), thick, cv2.LINE_AA)
         proc.stdin.write(region.tobytes())
+        if do_speed_ramp and t < 2.5:
+            proc.stdin.write(region.tobytes())
         frame_idx += 1
         if frame_idx - last_log >= 300:
             print(f"[render_visual] progress {frame_idx}/{total_frames} ({100*frame_idx/max(1,total_frames):.1f}%)", flush=True)

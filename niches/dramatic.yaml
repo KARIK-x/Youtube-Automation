@@ -1,0 +1,19 @@
+name: dramatic
+display_name: "Dramatic & Story"
+editing:
+  zoom_factor: 1.15
+  contrast: 1.2
+  sharpen: true
+  speed_ramp: slowmo
+  caption_size: 74
+  caption_emphasis: true
+  emphasis_color: [255, 80, 80]
+  sfx_density: medium
+  cut_density: medium
+music:
+  mood: tense
+  energy: medium
+captions:
+  highlight_color: "#FF5050"
+  font_weight: bold
+  position: lower_third

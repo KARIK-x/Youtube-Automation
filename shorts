@@ -3,8 +3,14 @@
 # Usage: shorts status | shorts run --profile chaos | shorts --help
 set -uo pipefail
 
-# Resolve ROOT from this script's location (works regardless of where it's installed)
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Resolve ROOT: follow symlinks to the real script location
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+    DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+ROOT="$(cd -P "$(dirname "$SOURCE")" && pwd)"
 
 # Pick a Python 3.12 that has the project deps.
 PY="${SHORTS_PYTHON:-/Library/Frameworks/Python.framework/Versions/3.12/bin/python3}"

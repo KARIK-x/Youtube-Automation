@@ -1,0 +1,19 @@
+name: tech
+display_name: "Tech & AI"
+editing:
+  zoom_factor: 1.2
+  contrast: 1.15
+  sharpen: true
+  speed_ramp: none
+  caption_size: 72
+  caption_emphasis: true
+  emphasis_color: [0, 255, 136]
+  sfx_density: medium
+  cut_density: medium
+music:
+  mood: energetic
+  energy: medium
+captions:
+  highlight_color: "#00FF88"
+  font_weight: bold
+  position: lower_third

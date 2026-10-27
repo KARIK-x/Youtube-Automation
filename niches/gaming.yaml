@@ -1,0 +1,19 @@
+name: gaming
+display_name: "Gaming & Esports"
+editing:
+  zoom_factor: 1.3
+  contrast: 1.12
+  sharpen: true
+  speed_ramp: fast
+  caption_size: 78
+  caption_emphasis: true
+  emphasis_color: [255, 200, 0]
+  sfx_density: high
+  cut_density: high
+music:
+  mood: energetic
+  energy: high
+captions:
+  highlight_color: "#FFC800"
+  font_weight: bold
+  position: lower_third

@@ -144,6 +144,11 @@ def cmd_jobs(args):
 def cmd_run(args):
     """Process every local source once, through the shared pipeline."""
     cfg, db = load()
+    niche_name = getattr(args, "niche", None)
+    if niche_name:
+        from shorts_studio.editing import niche as niche_mod
+        cfg = niche_mod.apply_niche_to_config(cfg, niche_name)
+        print(f"niche: {niche_name}")
     srcs = source.collect_local(str(ROOT / cfg["content"]["sources_dir"]))
     srcs += source.collect_urls(str(ROOT / cfg["content"]["sources_dir"]), str(ROOT / cfg["content"]["work_dir"]))
     if not srcs:
@@ -604,6 +609,11 @@ def cmd_dashboard(args):
 def cmd_agent(args):
     """Agentic mode: natural language -> find viral clip -> edit -> deliver."""
     cfg, db = load()
+    niche_name = getattr(args, "niche", None)
+    if niche_name:
+        from shorts_studio.editing import niche as niche_mod
+        cfg = niche_mod.apply_niche_to_config(cfg, niche_name)
+        print(f"niche: {niche_name}")
     from shorts_studio.media import viral_finder
     from shorts_studio.queue import pipeline
     from shorts_studio.media import seo
@@ -881,7 +891,7 @@ def main():
     p = sub.add_parser("render"); p.add_argument("--plan", required=True); p.add_argument("--output", default=None); p.add_argument("--force", action="store_true")
     p = sub.add_parser("qc"); p.add_argument("path")
     p = sub.add_parser("jobs"); p.add_argument("--limit", type=int, default=50)
-    p = sub.add_parser("run"); p.add_argument("--profile", default=None); p.add_argument("--allow-unverified", action="store_true"); p.add_argument("--min-score", type=float, default=None); p.add_argument("--beat-cuts", action="store_true"); p.add_argument("--narration", default=None)
+    p = sub.add_parser("run"); p.add_argument("--profile", default=None); p.add_argument("--allow-unverified", action="store_true"); p.add_argument("--min-score", type=float, default=None); p.add_argument("--beat-cuts", action="store_true"); p.add_argument("--narration", default=None); p.add_argument("--niche", default=None)
     sub.add_parser("status").add_argument("--offline", action="store_true")
     sub.add_parser("auth")
     p = sub.add_parser("thumbnail"); p.add_argument("path"); p.add_argument("--title", default=None); p.add_argument("--out", default=None)
@@ -894,7 +904,7 @@ def main():
     p = sub.add_parser("publish"); p.add_argument("job_id", type=int); p.add_argument("--confirm-live", action="store_true"); p.add_argument("--title", default=None); p.add_argument("--description", default=None)
     p = sub.add_parser("daily-plan"); p.add_argument("--sources-dir", default=None)
     p = sub.add_parser("run-daily"); p.add_argument("--sources-dir", default=None); p.add_argument("--dry-run", action="store_true"); p.add_argument("--beat-cuts", action="store_true")
-    p = sub.add_parser("agent"); p.add_argument("query", nargs="+"); p.add_argument("--auto", action="store_true"); p.add_argument("--profile", default=None); p.add_argument("--limit", type=int, default=8)
+    p = sub.add_parser("agent"); p.add_argument("query", nargs="+"); p.add_argument("--auto", action="store_true"); p.add_argument("--profile", default=None); p.add_argument("--limit", type=int, default=8); p.add_argument("--niche", default=None)
     p = sub.add_parser("dashboard"); p.add_argument("--port", type=int, default=8765)
     p = sub.add_parser("discover-auto"); p.add_argument("--channel-id", default=None)
     args = ap.parse_args()

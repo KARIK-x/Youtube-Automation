@@ -17,11 +17,17 @@ def test_launcher_exists_and_is_executable():
 
 def test_launcher_points_at_real_project():
     text = LAUNCHER.read_text()
-    root_line = [l for l in text.splitlines() if l.startswith("ROOT=")]
-    assert root_line, "launcher must define ROOT"
-    root = root_line[0].split("=", 1)[1].strip().strip('"')
-    assert Path(root, "src", "shorts_studio").is_dir(), f"bad ROOT: {root}"
-    assert Path(root).resolve() == ROOT.resolve()
+    # ROOT is now resolved dynamically (follows symlinks), so just check
+    # that the project path is referenced and the script is self-locating.
+    assert "BASH_SOURCE" in text or "dirname" in text
+    assert "shorts_studio" in text or "ROOT" in text
+    # functional check: running from a foreign dir resolves to this project
+    import subprocess, os
+    env = {**os.environ}; env.pop("PYTHONPATH", None)
+    out = subprocess.run([str(LAUNCHER), "status", "--offline"],
+                         cwd="/tmp", capture_output=True, text=True, env=env, timeout=120)
+    assert out.returncode == 0
+    assert "Shorts Studio" in out.stdout
 
 
 def test_launcher_runs_from_foreign_directory(tmp_path):
