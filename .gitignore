@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# Secrets & credentials (NEVER commit)
+secrets/
+.env
+*.json.bak
+
+# Data & outputs (large, regenerable)
+data/
+*.mp4
+*.wav
+*.mp3
+*.webm
+*.jpg
+*.jpeg
+*.png
+
+# Caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp

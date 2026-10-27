@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shorts Studio</title>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --bg2: #12121a;
+  --bg3: #1a1a28;
+  --border: #2a2a3a;
+  --text: #e4e4ec;
+  --text2: #9a9ab0;
+  --accent: #ff4d6d;
+  --accent2: #ff8c42;
+  --green: #22c55e;
+  --yellow: #f59e0b;
+  --red: #ef4444;
+  --blue: #3b82f6;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
+.app { display: flex; height: 100vh; }
+.sidebar { width: 220px; background: var(--bg2); border-right: 1px solid var(--border); padding: 20px 0; flex-shrink: 0; }
+.sidebar h1 { font-size: 18px; padding: 0 20px 20px; color: var(--accent); }
+.sidebar nav a { display: block; padding: 10px 20px; color: var(--text2); text-decoration: none; cursor: pointer; border-left: 3px solid transparent; }
+.sidebar nav a:hover { background: var(--bg3); color: var(--text); }
+.sidebar nav a.active { background: var(--bg3); color: var(--text); border-left-color: var(--accent); }
+.main { flex: 1; overflow-y: auto; padding: 24px; }
+.page { display: none; }
+.page.active { display: block; }
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.card h2 { font-size: 16px; margin-bottom: 12px; color: var(--text); }
+.card h3 { font-size: 14px; margin-bottom: 8px; color: var(--text2); }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.stat { background: var(--bg3); border-radius: 8px; padding: 14px; }
+.stat .label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+.stat .value { font-size: 22px; font-weight: 700; margin-top: 4px; }
+.stat .value.green { color: var(--green); }
+.stat .value.red { color: var(--red); }
+.stat .value.yellow { color: var(--yellow); }
+.btn { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+.btn:hover { opacity: 0.9; }
+.btn.secondary { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
+.btn.danger { background: var(--red); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.input { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-size: 13px; width: 100%; }
+.input:focus { outline: none; border-color: var(--accent); }
+.row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+.row label { font-size: 12px; color: var(--text2); min-width: 80px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+table th, table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+table th { color: var(--text2); font-weight: 600; font-size: 11px; text-transform: uppercase; }
+table tr:hover { background: var(--bg3); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.badge.green { background: rgba(34,197,94,0.15); color: var(--green); }
+.badge.yellow { background: rgba(245,158,11,0.15); color: var(--yellow); }
+.badge.red { background: rgba(239,68,68,0.15); color: var(--red); }
+.badge.blue { background: rgba(59,130,246,0.15); color: var(--blue); }
+.badge.gray { background: rgba(154,154,176,0.15); color: var(--text2); }
+.log { background: #050508; border: 1px solid var(--border); border-radius: 6px; padding: 10px; font-family: monospace; font-size: 11px; max-height: 300px; overflow-y: auto; white-space: pre-wrap; color: #a0a0b0; }
+.empty { text-align: center; padding: 40px; color: var(--text2); }
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg2); border: 1px solid var(--border); padding: 12px 20px; border-radius: 8px; font-size: 13px; z-index: 1000; opacity: 0; transition: opacity 0.3s; }
+.toast.show { opacity: 1; }
+.toast.success { border-color: var(--green); }
+.toast.error { border-color: var(--red); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.thumb { width: 120px; height: 68px; object-fit: cover; border-radius: 4px; background: var(--bg3); }
+.kv { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; border-bottom: 1px solid var(--border); }
+.kv .k { color: var(--text2); }
+.kv .v { color: var(--text); font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <h1>🎬 Shorts Studio</h1>
+    <nav>
+      <a data-page="overview" class="active">Overview</a>
+      <a data-page="discover">Discover</a>
+      <a data-page="studio">Editing Studio</a>
+      <a data-page="queue">Production Queue</a>
+      <a data-page="library">Library</a>
+      <a data-page="analytics">Analytics</a>
+      <a data-page="settings">Settings</a>
+    </nav>
+  </div>
+  <div class="main">
+    <!-- Overview -->
+    <div id="page-overview" class="page active">
+      <div class="card">
+        <h2>System Status</h2>
+        <div id="status-grid" class="stat-grid"></div>
+      </div>
+      <div class="card">
+        <h2>Recent Outputs</h2>
+        <div id="recent-outputs"></div>
+      </div>
+      <div class="card">
+        <h2>Quick Actions</h2>
+        <div class="row">
+          <input id="agent-query" class="input" placeholder="e.g. IShowSpeed funny moments" style="flex:1">
+          <button class="btn" onclick="runAgent()">Find & Edit</button>
+          <button class="btn secondary" onclick="runDaily(true)">Daily Plan (dry run)</button>
+        </div>
+        <div class="row">
+          <button class="btn secondary" onclick="runShorts()">Run Shorts Pipeline</button>
+          <button class="btn secondary" onclick="runDaily(false)">Run Daily</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Background Tasks</h2>
+        <div id="tasks"></div>
+      </div>
+    </div>
+
+    <!-- Discover -->
+    <div id="page-discover" class="page">
+      <div class="card">
+        <h2>Discover Opportunities</h2>
+        <div class="row">
+          <select id="disc-adapter" class="input" style="width:180px">
+            <option value="reddit">Reddit</option>
+            <option value="hackernews">Hacker News</option>
+            <option value="youtube_rss">YouTube RSS</option>
+            <option value="local">Local Files</option>
+            <option value="pexels">Pexels Stock</option>
+          </select>
+          <input id="disc-query" class="input" placeholder="search query (optional)" style="flex:1">
+          <button class="btn" onclick="discover()">Discover</button>
+        </div>
+        <div id="discover-results"></div>
+      </div>
+    </div>
+
+    <!-- Editing Studio -->
+    <div id="page-studio" class="page">
+      <div class="grid2">
+        <div class="card">
+          <h2>Video Preview</h2>
+          <video id="preview-video" controls style="width:100%; border-radius:8px; background:#000;"></video>
+          <div id="preview-meta" style="margin-top:10px; font-size:12px; color:var(--text2)"></div>
+        </div>
+        <div class="card">
+          <h2>QC Report</h2>
+          <div id="qc-report"></div>
+          <button class="btn secondary" style="margin-top:10px" onclick="runQC()">Run QC</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Generate SEO Metadata</h2>
+        <div class="row">
+          <input id="meta-source" class="input" placeholder="source video path or job id" style="flex:1">
+          <button class="btn" onclick="genMetadata()">Generate</button>
+        </div>
+        <pre id="meta-output" class="log" style="max-height:200px"></pre>
+      </div>
+    </div>
+
+    <!-- Queue -->
+    <div id="page-queue" class="page">
+      <div class="card">
+        <h2>Production Queue</h2>
+        <div id="queue-table"></div>
+        <button class="btn secondary" style="margin-top:10px" onclick="loadJobs()">Refresh</button>
+      </div>
+    </div>
+
+    <!-- Library -->
+    <div id="page-library" class="page">
+      <div class="card">
+        <h2>Output Library</h2>
+        <div id="library-grid"></div>
+      </div>
+    </div>
+
+    <!-- Analytics -->
+    <div id="page-analytics" class="page">
+      <div class="card">
+        <h2>YouTube Analytics (read-only, real data)</h2>
+        <div id="analytics-content"></div>
+        <button class="btn secondary" style="margin-top:10px" onclick="loadAnalytics()">Refresh</button>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div id="page-settings" class="page">
+      <div class="card">
+        <h2>Configuration</h2>
+        <div id="settings-content"></div>
+      </div>
+      <div class="card">
+        <h2>Audio Assets</h2>
+        <div id="audio-assets"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast" class="toast"></div>
+
+<script>
+let currentTask = null;
+const API = '';
+
+function toast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelector(`.sidebar nav a[data-page="${name}"]`).classList.add('active');
+  if (name === 'overview') loadStatus();
+  if (name === 'queue') loadJobs();
+  if (name === 'library') loadLibrary();
+  if (name === 'analytics') loadAnalytics();
+  if (name === 'settings') loadSettings();
+}
+
+document.querySelectorAll('.sidebar nav a').forEach(a => {
+  a.addEventListener('click', () => showPage(a.dataset.page));
+});
+
+async function api(path, opts={}) {
+  const r = await fetch(API + path, opts);
+  return r.json();
+}
+
+async function loadStatus() {
+  const d = await api('/api/status');
+  const g = document.getElementById('status-grid');
+  g.innerHTML = `
+    <div class="stat"><div class="label">Channel</div><div class="value">${d.channel}</div></div>
+    <div class="stat"><div class="label">Resolution</div><div class="value">${d.resolution}</div></div>
+    <div class="stat"><div class="label">YouTube Auth</div><div class="value ${d.oauth.present?'green':'red'}">${d.oauth.present?'AUTHORIZED':'NOT AUTH'}</div></div>
+    <div class="stat"><div class="label">Publishing</div><div class="value ${d.dry_run?'yellow':'green'}">${d.dry_run?'DRY RUN':'LIVE'}</div></div>
+    <div class="stat"><div class="label">Jobs (ready)</div><div class="value green">${d.jobs.READY_FOR_REVIEW||0}</div></div>
+    <div class="stat"><div class="label">Music</div><div class="value">${d.audio.music_licensed}/${d.audio.music_total}</div></div>
+    <div class="stat"><div class="label">SFX</div><div class="value">${d.audio.sfx_licensed}/${d.audio.sfx_total}</div></div>
+    <div class="stat"><div class="label">Disk Free</div><div class="value">${d.disk_free_gb} GB</div></div>
+  `;
+  // recent outputs
+  const ro = document.getElementById('recent-outputs');
+  if (d.outputs.length === 0) { ro.innerHTML = '<div class="empty">No outputs yet</div>'; return; }
+  ro.innerHTML = '<table><tr><th>File</th><th>Size</th><th>Date</th></tr>' +
+    d.outputs.slice(0,8).map(o => `<tr><td>${o.name}</td><td>${o.size_mb} MB</td><td>${new Date(o.mtime*1000).toLocaleString()}</td></tr>`).join('') +
+    '</table>';
+}
+
+async function runAgent() {
+  const q = document.getElementById('agent-query').value.trim();
+  if (!q) { toast('Enter a query', 'error'); return; }
+  const r = await api('/api/agent', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({query: q, auto: true})});
+  if (r.task_id) { toast('Agent started (task #' + r.task_id + ')'); pollTask(r.task_id); }
+  else toast(r.error || 'Failed', 'error');
+}
+
+async function runShorts() {
+  const r = await api('/api/run', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({allow_unverified: true})});
+  if (r.task_id) { toast('Shorts pipeline started (task #' + r.task_id + ')'); pollTask(r.task_id); }
+  else toast(r.error || 'Failed', 'error');
+}
+
+async function runDaily(dry) {
+  const r = await api('/api/daily', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({dry_run: dry})});
+  if (r.task_id) { toast('Daily run started (task #' + r.task_id + ')'); pollTask(r.task_id); }
+  else toast(r.error || 'Failed', 'error');
+}
+
+async function discover() {
+  const adapter = document.getElementById('disc-adapter').value;
+  const query = document.getElementById('disc-query').value.trim();
+  const r = await api('/api/discover', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({adapter, query})});
+  if (r.task_id) { toast('Discovery started (task #' + r.task_id + ')'); pollTask(r.task_id); }
+  else toast(r.error || 'Failed', 'error');
+}
+
+async function pollTask(tid) {
+  const interval = setInterval(async () => {
+    const t = await api('/api/task?id=' + tid);
+    if (t.status === 'done' || t.status === 'failed') {
+      clearInterval(interval);
+      if (t.status === 'done') toast('Task #' + tid + ' completed');
+      else toast('Task #' + tid + ' failed: ' + (t.error || ''), 'error');
+      loadStatus();
+      loadJobs();
+      loadLibrary();
+    }
+  }, 2000);
+}
+
+async function loadJobs() {
+  const d = await api('/api/jobs');
+  const el = document.getElementById('queue-table');
+  if (!d.jobs || d.jobs.length === 0) { el.innerHTML = '<div class="empty">No jobs yet</div>'; return; }
+  el.innerHTML = '<table><tr><th>ID</th><th>Status</th><th>Profile</th><th>Source</th><th>Duration</th><th>Output</th><th>Actions</th></tr>' +
+    d.jobs.map(j => `<tr>
+      <td>${j.id}</td>
+      <td><span class="badge ${statusBadge(j.status)}">${j.status}</span></td>
+      <td>${j.profile||'-'}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${(j.source_path||'').split('/').pop()}</td>
+      <td>${j.duration?j.duration.toFixed(1)+'s':'-'}</td>
+      <td>${j.output_path?'<a href="/files/'+j.output_path.replace(/^.*shorts_studio\//,'')+'" target="_blank">view</a>':'-'}</td>
+      <td>${j.status==='READY_FOR_REVIEW'?'<button class="btn secondary" style="padding:2px 6px;font-size:11px" onclick="approve('+j.id+')">Approve</button>':''}</td>
+    </tr>`).join('') + '</table>';
+}
+
+function statusBadge(s) {
+  if (s === 'READY_FOR_REVIEW' || s === 'APPROVED' || s === 'PUBLISHED') return 'green';
+  if (s === 'FAILED' || s === 'BLOCKED') return 'red';
+  if (s === 'RENDERING' || s === 'DISCOVERED') return 'yellow';
+  return 'gray';
+}
+
+async function approve(id) {
+  const r = await api('/api/approve', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({job_id: id})});
+  if (r.ok) { toast('Job ' + id + ' approved'); loadJobs(); }
+  else toast(r.error || 'Failed', 'error');
+}
+
+async function loadLibrary() {
+  const d = await api('/api/outputs');
+  const el = document.getElementById('library-grid');
+  if (!d.outputs || d.outputs.length === 0) { el.innerHTML = '<div class="empty">No outputs yet</div>'; return; }
+  el.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">' +
+    d.outputs.map(o => `<div class="card" style="padding:10px">
+      <div style="display:flex;gap:10px;align-items:center">
+        <img class="thumb" src="/files/${o.path.replace(/^.*shorts_studio\//,'')}" onerror="this.style.display='none'">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.name}</div>
+          <div style="font-size:11px;color:var(--text2)">${o.size_mb} MB</div>
+        </div>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:6px">
+        <button class="btn secondary" style="padding:2px 8px;font-size:11px" onclick="previewVideo('${o.path}')">Preview</button>
+        <button class="btn secondary" style="padding:2px 8px;font-size:11px" onclick="runQCPath('${o.path}')">QC</button>
+      </div>
+    </div>`).join('') + '</div>';
+}
+
+function previewVideo(path) {
+  const v = document.getElementById('preview-video');
+  v.src = '/files/' + path.replace(/^.*shorts_studio\//,'');
+  v.load();
+  showPage('studio');
+  document.getElementById('preview-meta').textContent = path.split('/').pop();
+}
+
+async function runQC() {
+  const path = document.getElementById('preview-video').src.replace(/^.*\/files\//,'');
+  if (!path) { toast('No video selected', 'error'); return; }
+  runQCPath('/' + path);
+}
+
+async function runQCPath(p) {
+  const r = await api('/api/qc?path=' + encodeURIComponent(p.startsWith('/')?p.slice(1):p));
+  const el = document.getElementById('qc-report');
+  if (r.error) { el.innerHTML = '<div style="color:var(--red)">'+r.error+'</div>'; return; }
+  const checks = r.checks || {};
+  el.innerHTML = `<div class="kv"><span class="k">Passed</span><span class="v" style="color:${r.passed?'var(--green)':'var(--red)'}">${r.passed}</span></div>` +
+    Object.entries(checks).map(([k,v]) => `<div class="kv"><span class="k">${k}</span><span class="v">${typeof v==='number'?v.toFixed(2):v}</span></div>`).join('') +
+    (r.errors && r.errors.length ? '<div style="color:var(--red);margin-top:8px;font-size:12px">'+r.errors.join('<br>')+'</div>' : '');
+}
+
+async function genMetadata() {
+  const src = document.getElementById('meta-source').value.trim();
+  if (!src) { toast('Enter source path or job id', 'error'); return; }
+  const body = src.match(/^\d+$/) ? {job_id: parseInt(src)} : {source: src};
+  const r = await api('/api/gen-metadata', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  if (r.task_id) { toast('Metadata generation started'); pollTask(r.task_id); }
+  else toast(r.error || 'Failed', 'error');
+}
+
+async function loadAnalytics() {
+  const d = await api('/api/analytics');
+  const el = document.getElementById('analytics-content');
+  if (d.error) { el.innerHTML = '<div style="color:var(--red)">'+d.error+'</div>'; return; }
+  if (!d.analytics || d.analytics.length === 0) {
+    el.innerHTML = '<div class="empty">No published videos with analytics yet. Analytics appear after publishing (currently dry-run).</div>';
+    return;
+  }
+  el.innerHTML = '<table><tr><th>Job</th><th>Video ID</th><th>Views</th><th>Avg Duration</th><th>Status</th></tr>' +
+    d.analytics.map(a => `<tr><td>${a.job_id}</td><td>${a.video_id}</td><td>${a.metrics?.views||'-'}</td><td>${a.metrics?.avg_view_duration||'-'}</td><td>${a.metrics?.status||'-'}</td></tr>`).join('') + '</table>';
+}
+
+async function loadSettings() {
+  const d = await api('/api/status');
+  const el = document.getElementById('settings-content');
+  el.innerHTML = `
+    <div class="kv"><span class="k">Channel</span><span class="v">${d.channel}</span></div>
+    <div class="kv"><span class="k">Resolution</span><span class="v">${d.resolution}</span></div>
+    <div class="kv"><span class="k">Publishing mode</span><span class="v">${d.dry_run?'DRY RUN (safe)':'LIVE'}</span></div>
+    <div class="kv"><span class="k">OAuth scopes</span><span class="v">${(d.oauth.scopes||[]).join(', ')}</span></div>
+    <div class="kv"><span class="k">Token perms</span><span class="v">${d.oauth.mode}</span></div>
+    <div class="kv"><span class="k">Disk free</span><span class="v">${d.disk_free_gb} GB</span></div>
+    <div style="margin-top:12px;font-size:12px;color:var(--text2)">Edit config.yaml to change profiles, audio levels, TTS voice, etc. Restart dashboard after config changes.</div>
+  `;
+  const aa = document.getElementById('audio-assets');
+  aa.innerHTML = `<div class="kv"><span class="k">Music licensed</span><span class="v">${d.audio.music_licensed} / ${d.audio.music_total}</span></div>
+    <div class="kv"><span class="k">SFX licensed</span><span class="v">${d.audio.sfx_licensed} / ${d.audio.sfx_total}</span></div>`;
+}
+
+async function loadTasks() {
+  const d = await api('/api/tasks');
+  const el = document.getElementById('tasks');
+  if (!d.tasks || d.tasks.length === 0) { el.innerHTML = '<div class="empty">No background tasks</div>'; return; }
+  el.innerHTML = d.tasks.slice().reverse().map(t => `
+    <div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:12px">
+      <span class="badge ${t.status==='done'?'green':t.status==='failed'?'red':'yellow'}">${t.status}</span>
+      <span style="margin-left:8px">Task #${t.id}</span>
+      <span style="color:var(--text2);margin-left:8px">${t.started?new Date(t.started*1000).toLocaleTimeString():''}</span>
+      ${t.error?'<div style="color:var(--red);margin-top:4px;font-size:11px">'+t.error+'</div>':''}
+      ${t.log && t.log.length ? '<details style="margin-top:4px"><summary style="cursor:pointer;color:var(--text2);font-size:11px">log ('+t.log.length+' lines)</summary><div class="log" style="max-height:150px;margin-top:4px">'+t.log.join('\n')+'</div></details>' : ''}
+    </div>
+  `).join('');
+}
+
+// Poll tasks every 3s
+setInterval(loadTasks, 3000);
+
+// Init
+loadStatus();
+loadTasks();
+</script>
+</body>
+</html>

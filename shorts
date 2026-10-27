@@ -1,0 +1,30 @@
+#!/bin/bash
+# Shorts Studio launcher. Works from any directory.
+# Usage: shorts status | shorts run --profile chaos | shorts --help
+set -uo pipefail
+
+ROOT="/Users/ashim/Downloads/ai automation OPENCODE/shorts_studio"
+
+# Pick a Python 3.12 that has the project deps.
+PY="${SHORTS_PYTHON:-/Library/Frameworks/Python.framework/Versions/3.12/bin/python3}"
+if [ ! -x "$PY" ]; then
+  PY="$(command -v python3 || true)"
+fi
+if [ -z "${PY:-}" ] || [ ! -x "$PY" ]; then
+  echo "shorts: no python3 found. Install Python 3.12 or set SHORTS_PYTHON." >&2
+  exit 127
+fi
+
+if [ ! -d "$ROOT/src/shorts_studio" ]; then
+  echo "shorts: project not found at $ROOT" >&2
+  echo "        edit this launcher's ROOT line if you moved it." >&2
+  exit 1
+fi
+
+export PYTHONPATH="$ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
+
+if [ "$#" -eq 0 ]; then
+  set -- status
+fi
+
+exec "$PY" -m shorts_studio.cli.main "$@"

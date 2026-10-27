@@ -1,0 +1,77 @@
+# KARIKKKSHORTS Shorts Studio config
+channel:
+  name: "KARIKKKSHORTS"
+  niche: "viral streamer moments"
+  uploads_per_day: 2
+  publish_times: ["11:00", "19:00"]
+
+content:
+  sources_dir: "./data/sources"
+  output_dir: "./data/output"
+  work_dir: "./data/work"
+
+video:
+  width: 1080
+  height: 1920
+  fps: 30
+  short_min: 10
+  short_max: 60
+  crop: "face"
+  face_detect_interval: 15
+  captions: true
+  caption_font_size: 72
+  normalize_audio: true
+  noise_reduce: true
+
+audio:
+  music_library_dir: "./data/audio_library"
+  sfx_library_dir: "./data/audio_library"
+
+tts:
+  provider: "edge-tts"
+  voice: "en-US-GuyNeural"
+
+editing:
+  zoom_on_reaction: true
+  beat_synced_cuts: false   # opt-in: split segments at beats that coincide with silence gaps
+  sharpen: true
+  contrast: 1.05
+  emphasis_keywords: ["bro", "what", "no", "crazy", "insane", "💀", "😭", "w", "🔥", "gg", "clutch"]
+
+ai_video:
+  pexels:
+    api_key: null   # free key from https://www.pexels.com/api/ (or set PEXELS_API_KEY env)
+  kling:
+    access_key: null   # set KLING_ACCESS_KEY env or here
+    secret_key: null
+  higgsfield:
+    api_key: null   # set HIGGSFIELD_API_KEY env or here
+  min_silence: 0.4
+  sharpen: true
+  contrast: 1.05
+  transitions: "cut"
+
+thumbnail:
+  width: 1280
+  height: 720
+  font_size: 96
+
+youtube:
+  client_secrets: "./secrets/client_secret.json"
+  token_file: "./secrets/token.json"
+  category_id: "24"
+  default_tags: ["shorts", "viral", "gaming", "streamer"]
+  privacy: "private"   # dry-run default; change to public when ready
+  max_uploads_per_day: 6
+  dry_run: true
+
+candidate:
+  min_score: 0.1   # minimum candidate score to proceed; rights eligibility is a hard gate
+  duplicate_threshold: 0.8
+
+db:
+  path: "./data/state.db"
+
+profiles:
+  default: "chaos"
+  available: ["wholesome", "chaos", "aura", "dramatic", "gaming"]

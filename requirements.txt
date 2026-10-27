@@ -1,0 +1,19 @@
+# shorts_studio requirements (pinned)
+av==12.3.0
+faster-whisper>=1.0
+opencv-python>=4.9
+Pillow>=10.0
+PyYAML>=6.0
+python-dotenv>=1.0
+edge-tts>=6.1
+# audio analysis (lightweight, no librosa)
+scipy>=1.10
+numpy>=1.24
+# transcription download
+yt-dlp>=2024.1
+# YouTube (optional)
+google-api-python-client>=2.100
+google-auth>=2.20
+google-auth-oauthlib>=1.2
+# scheduling
+apscheduler>=3.10
