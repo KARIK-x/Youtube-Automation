@@ -12,7 +12,7 @@ from pathlib import Path
 from scipy.io import wavfile
 
 SR = 44100
-ROOT = Path("/Users/ashim/Downloads/ai automation OPENCODE/shorts_studio")
+ROOT = Path(__file__).resolve().parent
 LIB = ROOT / "data" / "audio_library"
 SFX = LIB / "sfx"
 LIB.mkdir(parents=True, exist_ok=True)

@@ -9,7 +9,7 @@ import json, re, time
 from pathlib import Path
 import requests
 
-ROOT = Path("/Users/ashim/Downloads/ai automation OPENCODE/shorts_studio")
+ROOT = Path(__file__).resolve().parent
 LIB = ROOT / "data" / "audio_library"
 LIB.mkdir(parents=True, exist_ok=True)
 

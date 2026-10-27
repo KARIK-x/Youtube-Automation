@@ -3,7 +3,8 @@
 # Usage: shorts status | shorts run --profile chaos | shorts --help
 set -uo pipefail
 
-ROOT="/Users/ashim/Downloads/ai automation OPENCODE/shorts_studio"
+# Resolve ROOT from this script's location (works regardless of where it's installed)
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Pick a Python 3.12 that has the project deps.
 PY="${SHORTS_PYTHON:-/Library/Frameworks/Python.framework/Versions/3.12/bin/python3}"
