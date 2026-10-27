@@ -24,7 +24,7 @@ def _noop(*_a, **_kw):
 
 def process_source(cfg, db, root, src, profile=None, *, allow_unverified=False,
                    min_score=None, job_id=None, move_source=False, beat_cuts=None,
-                   narration_path=None, log=print):
+                   narration_path=None, niche=None, log=print):
     """Run the full Shorts pipeline for one source file.
 
     Returns a dict: {status, job_id, output, thumbnail, qc, reason, timings}.
@@ -37,6 +37,12 @@ def process_source(cfg, db, root, src, profile=None, *, allow_unverified=False,
     src = str(src)
     name = Path(src).stem
     profile = profile or cfg["profiles"]["default"]
+
+    # apply niche profile if specified
+    if niche:
+        from shorts_studio.editing import niche as niche_mod
+        cfg = niche_mod.apply_niche_to_config(cfg, niche)
+        log(f"  niche: {niche} (zoom={cfg['editing'].get('zoom_factor')}, music={cfg['audio'].get('music_mood')})")
     moments_log = log if log else _noop
 
     def _mark(status, **kw):

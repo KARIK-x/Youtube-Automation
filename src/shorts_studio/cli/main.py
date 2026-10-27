@@ -177,7 +177,8 @@ def cmd_run(args):
             res = pipeline.process_source(
                 cfg, db, ROOT, src, prof,
                 allow_unverified=allow, min_score=min_score, move_source=True,
-                beat_cuts=beat_cuts, narration_path=narration)
+                beat_cuts=beat_cuts, narration_path=narration,
+                niche=getattr(args, "niche", None))
         except Exception as ex:
             failed += 1
             print(f"  ERROR: {type(ex).__name__}: {ex}")
@@ -693,7 +694,8 @@ def cmd_agent(args):
         try:
             r = pipeline.process_source(cfg, db, ROOT, src, profile,
                                        allow_unverified=True, move_source=False,
-                                       beat_cuts=getattr(args, "beat_cuts", True))
+                                       beat_cuts=getattr(args, "beat_cuts", True),
+                                       niche=getattr(args, "niche", None))
         except Exception as e:
             print(f"  Edit error: {e}")
             continue
