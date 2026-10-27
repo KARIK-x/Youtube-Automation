@@ -158,6 +158,10 @@ class Handler(BaseHTTPRequestHandler):
         u = urlparse(self.path)
         path = u.path
         qs = parse_qs(u.query)
+        if path == "/favicon.ico":
+            self.send_response(204)
+            self.end_headers()
+            return
         if path == "/" or path == "/index.html":
             self._html(ROOT / "src" / "shorts_studio" / "dashboard" / "static" / "index.html")
             return
@@ -230,11 +234,13 @@ class Handler(BaseHTTPRequestHandler):
                 self._json({"error": str(e)}, 500)
             return
         if path.startswith("/files/"):
-            rel = path[len("/files/"):]
+            from urllib.parse import unquote
+            rel = unquote(path[len("/files/"):])
             self._file(ROOT / rel)
             return
         if path.startswith("/thumb/"):
-            rel = path[len("/thumb/"):]
+            from urllib.parse import unquote
+            rel = unquote(path[len("/thumb/"):])
             self._file(ROOT / rel)
             return
         self.send_error(404)
@@ -269,9 +275,19 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/api/discover":
             adapter = data.get("adapter", "reddit")
-            tid = _run_task(_discover, adapter, sources_dir=data.get("sources_dir"),
-                            channel_id=data.get("channel_id"), query=data.get("query"))
-            self._json({"task_id": tid})
+            # discovery is fast (<5s); run synchronously so results are returned
+            try:
+                import argparse
+                ns = argparse.Namespace(adapter=adapter, sources_dir=data.get("sources_dir"),
+                                        channel_id=data.get("channel_id"), query=data.get("query"))
+                # capture stdout
+                import io, contextlib
+                buf = io.StringIO()
+                with contextlib.redirect_stdout(buf):
+                    cli.cmd_discover(ns)
+                self._json({"ok": True, "adapter": adapter, "log": buf.getvalue().splitlines()})
+            except Exception as e:
+                self._json({"error": str(e)}, 500)
             return
         if path == "/api/approve":
             jid = data.get("job_id")

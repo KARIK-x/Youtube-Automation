@@ -79,6 +79,7 @@ class RedditAdapter(SourceAdapter):
             return [{"error": "requests not installed", "source_adapter": self.name}]
         subs = subreddits or ["videos", "PublicFreakout", "ContagiousLaughter", "MadeMeSmile"]
         out = []
+        blocked = False
         for sub in subs:
             url = f"https://www.reddit.com/r/{sub}/hot.json?limit={limit}"
             try:
@@ -86,7 +87,7 @@ class RedditAdapter(SourceAdapter):
                 r.raise_for_status()
                 data = r.json()
             except Exception as e:
-                out.append({"error": str(e), "source_adapter": self.name, "subreddit": sub})
+                blocked = True
                 continue
             for child in data.get("data", {}).get("children", []):
                 d = child.get("data", {})
@@ -101,9 +102,11 @@ class RedditAdapter(SourceAdapter):
                         "subreddit": sub,
                         "duration": d.get("duration"),
                     })
-        # sort by score desc
         out = [o for o in out if "error" not in o]
         out.sort(key=lambda x: (x.get("engagement_metrics") or {}).get("score", 0), reverse=True)
+        if not out and blocked:
+            return [{"error": "Reddit blocked automated access (403). Use manual URL input or YouTube search instead.",
+                    "source_adapter": self.name, "rights_status": "UNKNOWN"}]
         return out[:limit*2]
 
 

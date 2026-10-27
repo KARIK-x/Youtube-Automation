@@ -277,9 +277,26 @@ async function runDaily(dry) {
 async function discover() {
   const adapter = document.getElementById('disc-adapter').value;
   const query = document.getElementById('disc-query').value.trim();
+  const btn = event.target;
+  btn.disabled = true; btn.textContent = 'Discovering...';
   const r = await api('/api/discover', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({adapter, query})});
-  if (r.task_id) { toast('Discovery started (task #' + r.task_id + ')'); pollTask(r.task_id); }
-  else toast(r.error || 'Failed', 'error');
+  btn.disabled = false; btn.textContent = 'Discover';
+  const el = document.getElementById('discover-results');
+  if (r.error) { el.innerHTML = '<div style="color:var(--red)">'+r.error+'</div>'; return; }
+  const log = r.log || [];
+  // parse results from log lines
+  const results = log.filter(l => l.includes('dup='));
+  if (results.length === 0) {
+    el.innerHTML = '<div class="empty">No results. ' + (log.length ? '<pre class="log">'+log.join('\n')+'</pre>' : '') + '</div>';
+    return;
+  }
+  el.innerHTML = '<table><tr><th>Topic</th><th>Source</th><th>Rights</th><th>Duplicate</th></tr>' +
+    results.map(l => {
+      const m = l.match(/(\S+)\s+(.+?)\s+dup=(\S+)\s+rights=(\S+)/);
+      if (!m) return '<tr><td colspan="4">'+l+'</td></tr>';
+      return `<tr><td style="max-width:300px;overflow:hidden;text-overflow:ellipsis">${m[2]}</td><td>${m[1]}</td><td><span class="badge ${m[4]==='UNKNOWN'?'yellow':'green'}">${m[4]}</span></td><td>${m[3]}</td></tr>`;
+    }).join('') + '</table>' +
+    '<details style="margin-top:8px"><summary style="cursor:pointer;color:var(--text2);font-size:11px">full log</summary><pre class="log" style="margin-top:4px">'+log.join('\n')+'</pre></details>';
 }
 
 async function pollTask(tid) {
@@ -374,8 +391,24 @@ async function genMetadata() {
   if (!src) { toast('Enter source path or job id', 'error'); return; }
   const body = src.match(/^\d+$/) ? {job_id: parseInt(src)} : {source: src};
   const r = await api('/api/gen-metadata', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
-  if (r.task_id) { toast('Metadata generation started'); pollTask(r.task_id); }
-  else toast(r.error || 'Failed', 'error');
+  const el = document.getElementById('meta-output');
+  if (r.task_id) {
+    toast('Metadata generation started');
+    const interval = setInterval(async () => {
+      const t = await api('/api/task?id=' + r.task_id);
+      if (t.status === 'done' || t.status === 'failed') {
+        clearInterval(interval);
+        if (t.status === 'done') {
+          // find the result in the log or fetch sidecar
+          el.textContent = (t.log || []).join('\n');
+          toast('Metadata generated');
+        } else {
+          el.textContent = 'Failed: ' + (t.error || '');
+          toast('Failed: ' + (t.error || ''), 'error');
+        }
+      }
+    }, 2000);
+  } else toast(r.error || 'Failed', 'error');
 }
 
 async function loadAnalytics() {
