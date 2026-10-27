@@ -324,7 +324,8 @@ def render_longform(script_data, audio_path, out_path, cfg, work_dir):
     scene_durations = []
     for i, (img_path, dur, cap) in enumerate(scenes):
         seg_path = str(work_dir / f"scene_{i}.mp4")
-        _make_scene_video(img_path, seg_path, dur, w, h, fps, fade=0.8)
+        from shorts_studio.media import ken_burns as kb_mod
+        kb_mod.apply_ken_burns_to_scene(img_path, seg_path, cfg, dur)
         scene_files.append(seg_path)
         scene_durations.append(dur)
 

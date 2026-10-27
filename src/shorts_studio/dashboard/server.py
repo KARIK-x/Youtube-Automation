@@ -213,8 +213,8 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/analytics":
             try:
                 from shorts_studio.youtube.analytics import AnalyticsAdapter
+                from shorts_studio.analytics import learning
                 ad = AnalyticsAdapter(CFG)
-                # fetch for recent jobs with output
                 jobs = DB.list_jobs(limit=20)
                 out = []
                 for j in jobs:
@@ -222,7 +222,10 @@ class Handler(BaseHTTPRequestHandler):
                     if vid:
                         m = ad.fetch_video_metrics(vid)
                         out.append({"job_id": j["id"], "video_id": vid, "metrics": m})
-                self._json({"analytics": out, "note": "only jobs with youtube_id are queried"})
+                # learning loop (read-only, never fabricates)
+                ll = learning.run_learning_loop(CFG, DB)
+                self._json({"analytics": out, "learning": ll.get("analysis"),
+                            "note": "only jobs with youtube_id are queried; analytics is read-only"})
             except Exception as e:
                 self._json({"error": str(e)}, 500)
             return

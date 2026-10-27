@@ -848,6 +848,45 @@ def cmd_gen_metadata(args):
     return 0
 
 
+def cmd_analytics_learn(args):
+    cfg, db = load()
+    from shorts_studio.analytics import learning
+    res = learning.run_learning_loop(cfg, db)
+    if res.get("error"):
+        print("ERROR:", res["error"]); return 1
+    import json
+    print(json.dumps(res["analysis"], indent=2))
+    return 0
+    from shorts_studio.media import discovery
+    from shorts_studio.core import opportunity, rights, duplicates
+    adapter = discovery.get_adapter(args.adapter)
+    if adapter is None:
+        print("unknown adapter", args.adapter); return 1
+    kw = {}
+    if args.sources_dir: kw["sources_dir"] = args.sources_dir
+    if args.channel_id: kw["channel_id"] = args.channel_id
+    if args.query: kw["query"] = args.query
+    if args.adapter == "local" and not kw.get("sources_dir"):
+        kw["sources_dir"] = str(ROOT / cfg["content"]["sources_dir"])
+    raw = adapter.discover(**kw)
+    print(f"adapter {args.adapter}: {len(raw)} results")
+    rr = rights.RightsRegistry(db)
+    existing = db.list_opportunities()
+    for r in raw:
+        if "error" in r:
+            print("  ERROR:", r["error"]); continue
+        opp = opportunity.make_opportunity(r.get("topic","unknown"), source_url=r.get("source_url"),
+                                          source_adapter=r.get("source_adapter", args.adapter),
+                                          rights_status=r.get("rights_status","UNKNOWN"))
+        is_dup, reason, kind = duplicates.check_duplicate(opp, existing)
+        opp["duplicate_status"] = kind if is_dup else "none"
+        rid = rr.register(source_url=opp["source_url"], creator=None, acquisition_method=args.adapter,
+                          license_type="UNKNOWN", review_status="UNKNOWN")
+        db.add_opportunity(opp)
+        print(f"  {opp['opportunity_id']} {opp['topic'][:60]} dup={opp['duplicate_status']} rights={opp['rights_status']}")
+    return 0
+
+
 def cmd_discover(args):
     cfg, db = load()
     from shorts_studio.media import discovery
@@ -906,6 +945,8 @@ def main():
     p = sub.add_parser("run-daily"); p.add_argument("--sources-dir", default=None); p.add_argument("--dry-run", action="store_true"); p.add_argument("--beat-cuts", action="store_true")
     p = sub.add_parser("agent"); p.add_argument("query", nargs="+"); p.add_argument("--auto", action="store_true"); p.add_argument("--profile", default=None); p.add_argument("--limit", type=int, default=8); p.add_argument("--niche", default=None)
     p = sub.add_parser("dashboard"); p.add_argument("--port", type=int, default=8765)
+    p = sub.add_parser("analytics-learn")
+    p = sub.add_parser("discover"); p.add_argument("--adapter", default="local"); p.add_argument("--sources-dir", default=None); p.add_argument("--channel-id", default=None); p.add_argument("--query", default=None)
     p = sub.add_parser("discover-auto"); p.add_argument("--channel-id", default=None)
     args = ap.parse_args()
     dispatch = {
@@ -915,7 +956,7 @@ def main():
     "auth": cmd_auth,
     "download-url": cmd_download_url, "discover": cmd_discover, "search-stock": cmd_search_stock, "gen-video": cmd_gen_video,
     "gen-metadata": cmd_gen_metadata, "publish-dryrun": cmd_publish_dryrun,
-    "dashboard": cmd_dashboard, "discover": cmd_discover, "discover-auto": cmd_discover_auto, "agent": cmd_agent, "daily-plan": cmd_daily_plan, "run-daily": cmd_run_daily,
+    "dashboard": cmd_dashboard, "analytics-learn": cmd_analytics_learn, "discover": cmd_discover, "discover-auto": cmd_discover_auto, "agent": cmd_agent, "daily-plan": cmd_daily_plan, "run-daily": cmd_run_daily,
     "approve": cmd_approve, "publish": cmd_publish,
     }
     return dispatch[args.cmd](args)

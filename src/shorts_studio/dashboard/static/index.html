@@ -382,12 +382,35 @@ async function loadAnalytics() {
   const d = await api('/api/analytics');
   const el = document.getElementById('analytics-content');
   if (d.error) { el.innerHTML = '<div style="color:var(--red)">'+d.error+'</div>'; return; }
+  let html = '';
   if (!d.analytics || d.analytics.length === 0) {
-    el.innerHTML = '<div class="empty">No published videos with analytics yet. Analytics appear after publishing (currently dry-run).</div>';
-    return;
+    html += '<div class="empty">No published videos with analytics yet. Analytics appear after publishing (currently dry-run).</div>';
+  } else {
+    html += '<table><tr><th>Job</th><th>Video ID</th><th>Views</th><th>Avg Duration</th><th>Status</th></tr>' +
+      d.analytics.map(a => `<tr><td>${a.job_id}</td><td>${a.video_id}</td><td>${a.metrics?.views||'-'}</td><td>${a.metrics?.avg_view_duration||'-'}</td><td>${a.metrics?.status||'-'}</td></tr>`).join('') + '</table>';
   }
-  el.innerHTML = '<table><tr><th>Job</th><th>Video ID</th><th>Views</th><th>Avg Duration</th><th>Status</th></tr>' +
-    d.analytics.map(a => `<tr><td>${a.job_id}</td><td>${a.video_id}</td><td>${a.metrics?.views||'-'}</td><td>${a.metrics?.avg_view_duration||'-'}</td><td>${a.metrics?.status||'-'}</td></tr>`).join('') + '</table>';
+  if (d.learning) {
+    html += '<div style="margin-top:16px"><h3>Evidence-Based Recommendations</h3>';
+    const recs = d.learning.recommendations || [];
+    if (recs.length === 0) {
+      html += '<div class="empty">No recommendations yet (need more data).</div>';
+    } else {
+      recs.forEach(r => {
+        html += `<div class="card" style="margin-top:8px;padding:10px">
+          <div style="font-size:12px;font-weight:600;color:var(--accent)">${r.type}</div>
+          <div style="font-size:12px;margin-top:4px">${r.observation}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:4px">Sample: ${r.sample_size} | ${r.limitation}</div>
+          <div style="font-size:11px;color:var(--green);margin-top:4px">→ ${r.suggestion}</div>
+        </div>`;
+      });
+    }
+    if (d.learning.summary && Object.keys(d.learning.summary).length > 0) {
+      html += '<div style="margin-top:12px"><h3>By Profile</h3><table><tr><th>Profile</th><th>Count</th><th>Avg Views</th><th>Avg Duration</th></tr>' +
+        Object.entries(d.learning.summary).map(([p,s]) => `<tr><td>${p}</td><td>${s.count}</td><td>${s.avg_views||'-'}</td><td>${s.avg_view_duration||'-'}</td></tr>`).join('') + '</table></div>';
+    }
+    html += '</div>';
+  }
+  el.innerHTML = html;
 }
 
 async function loadSettings() {

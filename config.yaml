@@ -37,6 +37,11 @@ editing:
   sharpen: true
   contrast: 1.05
   emphasis_keywords: ["bro", "what", "no", "crazy", "insane", "💀", "😭", "w", "🔥", "gg", "clutch"]
+  ken_burns:
+    enabled: true
+    start_scale: 1.0
+    end_scale: 1.12
+    easing: ease_in_out
 
 ai_video:
   pexels:
